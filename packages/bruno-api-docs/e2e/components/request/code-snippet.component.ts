@@ -8,6 +8,7 @@ export class CodeSnippetComponent extends BaseComponent {
   readonly iconTrigger: Locator;
   readonly modal: Locator;
   readonly modalCode: Locator;
+  readonly modalCopyButton: Locator;
   readonly modalInterpolate: Locator;
 
   constructor(
@@ -21,7 +22,30 @@ export class CodeSnippetComponent extends BaseComponent {
     this.iconTrigger = this.root.getByTestId(`${base}-trigger`);
     this.modal = page.getByTestId(`${base}-modal`);
     this.modalCode = this.modal.getByTestId(`${base}-code`);
+    this.modalCopyButton = this.modal.getByTestId(`${base}-copy`);
     this.modalInterpolate = this.modal.getByTestId(`${base}-interpolate-input`);
+  }
+
+  /** Language ids from the inline tablist (`curl`, `javascript`, …). */
+  async languageIds(): Promise<string[]> {
+    return this.tabIds(this.root);
+  }
+
+  /** Language ids from the expanded/modal tablist. */
+  async modalLanguageIds(): Promise<string[]> {
+    return this.tabIds(this.modal);
+  }
+
+  private async tabIds(scope: Locator): Promise<string[]> {
+    const prefix = `${this.base}-tab-`;
+    const tabs = scope.getByRole('tab');
+    const count = await tabs.count();
+    const ids: string[] = [];
+    for (let i = 0; i < count; i++) {
+      const testId = await tabs.nth(i).getAttribute('data-testid');
+      ids.push((testId ?? '').slice(prefix.length));
+    }
+    return ids;
   }
 
   variableToken(name: string): Locator {
