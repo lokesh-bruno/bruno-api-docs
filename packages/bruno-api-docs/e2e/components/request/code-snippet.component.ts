@@ -26,24 +26,24 @@ export class CodeSnippetComponent extends BaseComponent {
     this.modalInterpolate = this.modal.getByTestId(`${base}-interpolate-input`);
   }
 
-  /** Language ids from the inline tablist (`curl`, `javascript`, …). */
   async languageIds(): Promise<string[]> {
     return this.tabIds(this.root);
   }
 
-  /** Language ids from the expanded/modal tablist. */
   async modalLanguageIds(): Promise<string[]> {
     return this.tabIds(this.modal);
   }
 
   private async tabIds(scope: Locator): Promise<string[]> {
     const prefix = `${this.base}-tab-`;
-    const tabs = scope.getByRole('tab');
+    const tabs = scope.getByTestId(new RegExp(`^${prefix}`));
     const count = await tabs.count();
     const ids: string[] = [];
     for (let i = 0; i < count; i++) {
       const testId = await tabs.nth(i).getAttribute('data-testid');
-      ids.push((testId ?? '').slice(prefix.length));
+      if (testId?.startsWith(prefix)) {
+        ids.push(testId.slice(prefix.length));
+      }
     }
     return ids;
   }
