@@ -106,13 +106,10 @@ test.describe('Request page — Examples', () => {
     });
 
     test('opens a dialog with the same languages as the request page Code Snippet', async ({ requestPage }) => {
-      const { examples, codeSnippet } = requestPage;
+      const { examples } = requestPage;
       await examples.openSnippet(OK_EXAMPLE);
 
-      const pageLanguages = await codeSnippet.languageIds();
-      const exampleLanguages = await examples.snippet.modalLanguageIds();
-      expect(pageLanguages.length).toBeGreaterThan(0);
-      expect(exampleLanguages).toEqual(pageLanguages);
+      expect(await examples.snippet.modalLanguageIds()).toEqual([...SNIPPET_LANGUAGES]);
     });
 
     test('shows the example request, and switches language on demand', async ({ requestPage }) => {
@@ -249,10 +246,18 @@ test.describe('Request page — Example code snippet (Show vars)', () => {
     await examples.openSnippet(VARS_EXAMPLE);
     await expect(examples.snippet.modalInterpolate).not.toBeChecked();
     await expect(examples.snippetCode).toContainText('{{host}}');
+    await expect(examples.snippetCode).toContainText('{{exampleOnly}}');
 
     await examples.snippet.modalInterpolate.setChecked(true);
     await expect(examples.snippetCode).toContainText('https://api.dev.example.com/customers');
     await expect(examples.snippetCode).toContainText('example-value');
+    await expect(examples.snippetCode).not.toContainText('{{host}}');
+    await expect(examples.snippetCode).not.toContainText('{{exampleOnly}}');
     await expect(envSwitcher.showVarsToggle).toHaveAttribute('aria-checked', 'false');
+
+    await examples.snippet.modalInterpolate.setChecked(false);
+    await expect(examples.snippetCode).toContainText('{{host}}');
+    await expect(examples.snippetCode).toContainText('{{exampleOnly}}');
+    await expect(examples.snippetCode).not.toContainText('https://api.dev.example.com');
   });
 });
