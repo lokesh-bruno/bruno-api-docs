@@ -20,7 +20,7 @@ test.describe('Theme switcher', () => {
       await themeToggle.toggle();
 
       await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
-      // The toggle now offers the opposite action.
+
       await expect(themeToggle.button).toHaveAccessibleName('Switch to light theme');
     });
 
