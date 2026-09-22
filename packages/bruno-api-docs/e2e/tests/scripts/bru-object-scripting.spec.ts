@@ -68,7 +68,7 @@ test('bru.utils and bru.isSafeMode run in the sandbox', function () {
   expect(bru.isSafeMode()).to.equal(true);
 });
 
-test('bru.sleep, sendRequest, getTestResults, getAssertionResults, and runRequest run', async function () {
+await test('bru.sleep, sendRequest, getTestResults, getAssertionResults, and runRequest run', async function () {
   await bru.sleep(1);
 
   var sent = await bru.sendRequest({
@@ -80,17 +80,17 @@ test('bru.sleep, sendRequest, getTestResults, getAssertionResults, and runReques
 
   var tests = await bru.getTestResults();
   expect(tests).to.be.an('object');
-  expect(tests.summary).to.be.an('object');
-  expect(Array.isArray(tests.results)).to.equal(true);
-
+  expect(tests.summary.failed).to.equal(0);
+  expect(tests.results[0].status).to.equal('pass');
+  
   var asserts = await bru.getAssertionResults();
   expect(asserts).to.be.an('object');
   expect(asserts.summary).to.be.an('object');
   expect(Array.isArray(asserts.results)).to.equal(true);
-
+  
   var missing = await bru.runRequest('__no_such_request__');
   expect(missing).to.be.an('object');
-  expect(missing.message).to.be.a('string');
+  expect(missing.message).to.contain('invalid request path');
 });
 `;
 
