@@ -1,4 +1,5 @@
 import { test, expect } from '../../playwright';
+import { ThemeToggleComponent } from '../../components/layout/theme-toggle.component';
 
 /**
  * The header has one button that flips the whole app between light and dark.
@@ -73,9 +74,10 @@ test.describe('Theme switcher', () => {
 
       const reopened = await context.newPage();
       await reopened.goto('/');
+      const reopenedToggle = new ThemeToggleComponent(reopened);
 
       await expect(reopened.locator('html')).toHaveAttribute('data-theme', 'dark');
-      await expect(reopened.getByTestId('theme-toggle')).toHaveAccessibleName('Switch to light theme');
+      await expect(reopenedToggle.button).toHaveAccessibleName('Switch to light theme');
     });
   });
 
