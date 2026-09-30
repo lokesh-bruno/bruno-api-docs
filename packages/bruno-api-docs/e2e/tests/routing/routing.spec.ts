@@ -8,9 +8,6 @@ const DESKTOP = { width: 1280, height: 900 };
 const TABLET = { width: 768, height: 900 };
 const MOBILE = { width: 375, height: 800 };
 
-const sidebarItem = (page: Page, slug: string) =>
-  page.locator(`[data-testid="sidebar-item"][data-slug="${slug}"]`);
-
 /** Overview's slug is the hash root: either no hash or exactly `#/`. */
 const expectOverviewHash = (page: Page) =>
   expect(page).toHaveURL(/\/\?fixture=folders(?:#\/)?$/);
@@ -55,7 +52,7 @@ test.describe('page-based navigation', () => {
     await expect(page.getByTestId('sidebar-item').filter({ hasText: 'Cancel Booking' })).toBeVisible();
   });
 
-  test('prev/next walks the hierarchy in sequence order', async ({ page }) => {
+  test('prev/next walks the hierarchy in sequence order', async ({ page, sidebar }) => {
     await page.goto(page$('bookings/lifecycle/create-booking'));
 
     const next = page.getByTestId('next-link');
@@ -70,9 +67,8 @@ test.describe('page-based navigation', () => {
     await expect(page.getByTestId('prev-link')).toContainText('Create Booking');
     await expect(page.getByTestId('next-link')).toContainText('Cancel Booking');
 
-    const active = page.locator('[data-testid="sidebar-item"].active');
-    await expect(active).toHaveCount(1);
-    await expect(active).toHaveAttribute('data-slug', 'bookings/lifecycle/confirm-booking');
+    await expect(sidebar.active).toHaveCount(1);
+    await expect(sidebar.active).toHaveAttribute('data-slug', 'bookings/lifecycle/confirm-booking');
 
     await page.getByTestId('prev-link').click();
     await expect(page.getByTestId('page')).toHaveAttribute(
@@ -130,7 +126,7 @@ test.describe('page-based navigation', () => {
     await expect(page).toHaveURL(/#\/authentication$/);
   });
 
-  test('editing the hash navigates without a full reload and highlights the sidebar', async ({ page }) => {
+  test('editing the hash navigates without a full reload and highlights the sidebar', async ({ page, sidebar }) => {
     await page.goto(FIXTURE);
     await expect(page.getByTestId('page')).toHaveAttribute('data-page-type', 'overview');
     await page.evaluate(() => {
@@ -143,31 +139,31 @@ test.describe('page-based navigation', () => {
 
     await expect(page.getByTestId('page')).toHaveAttribute('data-page-slug', 'authentication/login');
     await expect(page.getByRole('heading', { name: 'Login', level: 1 })).toBeVisible();
-    await expect(sidebarItem(page, 'authentication/login')).toHaveClass(/active/);
+    await expect(sidebar.itemBySlug('authentication/login')).toHaveClass(/active/);
     expect(await page.evaluate(() => (window as Window & { __docsStay?: boolean }).__docsStay)).toBe(true);
   });
 
-  test('browser back and forward keep url, content, and sidebar in sync', async ({ page }) => {
+  test('browser back and forward keep url, content, and sidebar in sync', async ({ page, sidebar }) => {
     await page.goto(FIXTURE);
-    await sidebarItem(page, 'authentication').click();
+    await sidebar.itemBySlug('authentication').click();
     await expect(page.getByTestId('folder-title')).toHaveText('Authentication');
-    await expect(sidebarItem(page, 'authentication')).toHaveClass(/active/);
+    await expect(sidebar.itemBySlug('authentication')).toHaveClass(/active/);
 
-    await sidebarItem(page, 'authentication/login').click();
+    await sidebar.itemBySlug('authentication/login').click();
     await expect(page.getByRole('heading', { name: 'Login', level: 1 })).toBeVisible();
     await expect(page).toHaveURL(/#\/authentication\/login$/);
-    await expect(sidebarItem(page, 'authentication/login')).toHaveClass(/active/);
+    await expect(sidebar.itemBySlug('authentication/login')).toHaveClass(/active/);
 
     await page.goBack();
     await expect(page).toHaveURL(/#\/authentication$/);
     await expect(page.getByTestId('folder-title')).toHaveText('Authentication');
-    await expect(sidebarItem(page, 'authentication')).toHaveClass(/active/);
+    await expect(sidebar.itemBySlug('authentication')).toHaveClass(/active/);
     await expect(page.getByRole('heading', { name: 'Login', level: 1 })).toHaveCount(0);
 
     await page.goForward();
     await expect(page).toHaveURL(/#\/authentication\/login$/);
     await expect(page.getByRole('heading', { name: 'Login', level: 1 })).toBeVisible();
-    await expect(sidebarItem(page, 'authentication/login')).toHaveClass(/active/);
+    await expect(sidebar.itemBySlug('authentication/login')).toHaveClass(/active/);
   });
 
   test('first page shows only Next and last page shows only Previous', async ({ page }) => {
@@ -202,13 +198,11 @@ test.describe('page-based navigation', () => {
     await expect(page.getByTestId('page')).toHaveAttribute('data-page-slug', 'setup-script');
   });
 
-  test('rapid Next clicks land on the last target with content, hash, and sidebar in sync', async ({ page }) => {
+  test('rapid Next clicks land on the last target with content, hash, and sidebar in sync', async ({ page, sidebar }) => {
     await page.goto(page$('bookings/lifecycle/create-booking'));
     await expect(page.getByTestId('next-link')).toBeVisible();
 
     // Clicks run in the page so Playwright does not wait for each link to go stable.
-    // The yield is one macrotask. If this fails on Confirm Booking, treat it as a
-    // timing failure unless Payments stays wrong when the same clicks are done by hand.
     await page.evaluate(async () => {
       for (let i = 0; i < 3; i += 1) {
         const link = document.querySelector<HTMLAnchorElement>('[data-testid="next-link"]');
@@ -222,22 +216,22 @@ test.describe('page-based navigation', () => {
     await expect(page.getByTestId('page')).toHaveAttribute('data-page-type', 'folder');
     await expect(page).toHaveURL(/#\/bookings\/payments$/);
     await expect(page.getByTestId('folder-title')).toHaveText('Payments');
-    await expect(sidebarItem(page, 'bookings/payments')).toHaveClass(/active/);
+    await expect(sidebar.itemBySlug('bookings/payments')).toHaveClass(/active/);
     await expect(page.getByRole('heading', { name: 'Create Booking', level: 1 })).toHaveCount(0);
     await expect(page.getByRole('heading', { name: 'Confirm Booking', level: 1 })).toHaveCount(0);
   });
 
-  test('a distant sidebar jump after Next shows only that page', async ({ page }) => {
+  test('a distant sidebar jump after Next shows only that page', async ({ page, sidebar }) => {
     await page.goto(page$('bookings/lifecycle/create-booking'));
     await page.getByTestId('next-link').click();
     await expect(page).toHaveURL(/#\/bookings\/lifecycle\/confirm-booking$/);
 
-    await sidebarItem(page, 'health-check').click();
+    await sidebar.itemBySlug('health-check').click();
 
     await expect(page.getByTestId('page')).toHaveAttribute('data-page-slug', 'health-check');
     await expect(page).toHaveURL(/#\/health-check$/);
     await expect(page.getByTestId('request-title')).toContainText('Health Check');
-    await expect(sidebarItem(page, 'health-check')).toHaveClass(/active/);
+    await expect(sidebar.itemBySlug('health-check')).toHaveClass(/active/);
     await expect(page.getByRole('heading', { name: 'Confirm Booking', level: 1 })).toHaveCount(0);
     await expect(page.getByRole('heading', { name: 'Create Booking', level: 1 })).toHaveCount(0);
   });
