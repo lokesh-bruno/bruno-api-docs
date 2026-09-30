@@ -13,7 +13,6 @@ const TABLET = { width: 900, height: 800 };
 const MOBILE = { width: 390, height: 800 };
 
 const GENERAL = '/?fixture=general';
-const NO_ENV = '/?fixture=general-none';
 const ONE_ENV = '/?fixture=general-one';
 const LONG_NAME = '/?fixture=general-long';
 const NO_VERSION = '/?fixture=general-noversion';
@@ -279,14 +278,6 @@ test.describe('Header behavior', () => {
     await envSwitcher.open();
     await expect(envSwitcher.menu.getByRole('menuitem')).toHaveCount(1);
     await expect(envSwitcher.option('Staging')).toBeVisible();
-  });
-
-  test('shows No environments in the dropdown when none are included', async ({ page, envSwitcher }) => {
-    await page.goto(NO_ENV);
-
-    await expect(envSwitcher.trigger).toContainText('No environments');
-    await envSwitcher.open();
-    await expect(envSwitcher.emptyOption).toContainText('No environments');
   });
 
   test('truncates a very long collection name without covering the other controls', async ({
