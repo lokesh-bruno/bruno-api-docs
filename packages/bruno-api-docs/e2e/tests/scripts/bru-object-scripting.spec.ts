@@ -101,8 +101,6 @@ await test('bru.sleep, sendRequest, getTestResults, getAssertionResults, and run
 const unsupportedWarning = (api: string): string =>
   `${api} is not currently supported in the Bruno playground. Please use the Bruno desktop app.`;
 
-// One entry per call in the unsupported-API script. Reading `bru.runner.iterationData`
-// also warns for the object itself, before `.get()` warns for the method.
 const UNSUPPORTED_BRU_APIS = [
   'bru.visualize',
   'bru.clearVisualizations',
@@ -170,7 +168,7 @@ test.describe('The bru object available to scripts (end-to-end in the playground
     await responsePane.send();
     await responsePane.switchToTab('tests');
 
-    await expect(responsePane.testsPanel.getByText('Tests (7), Passed: 7, Failed: 0')).toBeVisible();
+    await expect(responsePane.testsPanel.getByTestId('tests-results-summary')).toHaveText('Tests (7), Passed: 7, Failed: 0');
   });
 
   test('an out-of-scope bru method surfaces a warning in the response pane instead of silently doing nothing', async ({ page, playground, responsePane }) => {

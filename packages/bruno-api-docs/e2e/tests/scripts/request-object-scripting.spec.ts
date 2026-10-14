@@ -153,7 +153,7 @@ test.describe('The req object available to scripts (end-to-end in the playground
     await responsePane.send();
     await responsePane.switchToTab('tests');
 
-    await expect(responsePane.testsPanel.getByText('Tests (10), Passed: 10, Failed: 0')).toBeVisible();
+    await expect(responsePane.testsPanel.getByTestId('tests-results-summary')).toHaveText('Tests (10), Passed: 10, Failed: 0');
   });
 
   test('an unsupported req method surfaces a warning in the response pane instead of silently doing nothing', async ({ page, playground, responsePane }) => {
