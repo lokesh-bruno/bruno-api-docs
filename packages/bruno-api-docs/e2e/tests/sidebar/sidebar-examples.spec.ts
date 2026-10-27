@@ -98,7 +98,12 @@ test.describe('Sidebar - Examples (docs)', () => {
 test.describe('Sidebar - Examples (just below desktop, drawer)', () => {
   test.use({ viewport: DRAWER });
 
-  test('opens a saved example from the drawer and keeps pagination usable', async ({ page, sidebar, requestPage }) => {
+  test('opens a saved example from the drawer and keeps pagination usable', async ({
+    page,
+    sidebar,
+    requestPage,
+    prevNext
+  }) => {
     await page.goto(`/${REQUEST_PATH}`);
     await sidebar.openDrawer();
     await sidebar.toggleExamples('Get All Customers');
@@ -112,10 +117,9 @@ test.describe('Sidebar - Examples (just below desktop, drawer)', () => {
     await expect(sidebar.exampleRow(OK_EXAMPLE)).toHaveClass(/active/);
     await sidebar.closeDrawerViaBackdrop();
 
-    await page.getByTestId('next-link').click();
-    await expect(page).not.toHaveURL(/200-ok-first-page/);
-    await expect(page.getByTestId('page')).toBeVisible();
-    await expect(sidebar.inline).toHaveCount(0);
+    await prevNext.next.click();
+    await expect(page).toHaveURL(/#\/billing\/customers\/get-customers-filter-by-email$/);
+    await expect(requestPage.title).toHaveText('Get Customers - Filter by Email');
 
     await page.goBack();
     await expect(requestPage.examples.activeCard).toContainText(OK_EXAMPLE);

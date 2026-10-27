@@ -6,7 +6,7 @@ const exactText = (value: string) => new RegExp(`^${value.replace(/[.*+?^${}()|[
 export class SidebarComponent extends BaseComponent {
   readonly items = this.page.getByTestId('sidebar-item');
   readonly active = this.items.and(this.page.locator('.active'));
-  readonly labels = this.items.getByTestId('sidebar-label');
+  readonly labels = this.items.getByTestId('sidebar-item-label');
   readonly inline = this.page.getByTestId('app-sidebar');
   readonly overview = this.page.getByTestId('sidebar-overview');
   readonly environments = this.page.getByTestId('sidebar-environments');
@@ -19,7 +19,7 @@ export class SidebarComponent extends BaseComponent {
 
   item(name: string): Locator {
     return this.items.filter({
-      has: this.page.getByTestId('sidebar-label').filter({ hasText: exactText(name) })
+      has: this.page.getByTestId('sidebar-item-label').filter({ hasText: exactText(name) })
     });
   }
 
@@ -28,7 +28,7 @@ export class SidebarComponent extends BaseComponent {
   }
 
   methodBadge(name: string): Locator {
-    return this.item(name).getByTestId('sidebar-method');
+    return this.item(name).getByTestId('sidebar-item-method');
   }
 
   /** Folder arrow. Named from its accessible label, which flips between Expand and Collapse. */
@@ -46,7 +46,7 @@ export class SidebarComponent extends BaseComponent {
 
   exampleRow(exampleName: string): Locator {
     return this.page.getByTestId('sidebar-example').filter({
-      has: this.page.getByTestId('sidebar-label').filter({ hasText: exactText(exampleName) })
+      has: this.page.getByTestId('sidebar-example-label').filter({ hasText: exactText(exampleName) })
     });
   }
 

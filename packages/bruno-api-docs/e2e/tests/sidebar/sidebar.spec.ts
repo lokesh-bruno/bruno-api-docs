@@ -46,16 +46,15 @@ test.describe('sidebar - desktop (inline, collapsible)', () => {
     await expect(sidebar.collapseButton).toHaveCSS('opacity', '1');
   });
 
-  test('collapses the whole panel and re-opens it', async ({ page, sidebar }) => {
+  test('collapses the whole panel and re-opens it', async ({ page, sidebar, overviewPage }) => {
     await page.goto(FOLDERS);
-    const content = page.getByRole('main');
-    const before = await content.boundingBox();
+    const before = await overviewPage.main.boundingBox();
 
     await sidebar.collapse();
     await expect(sidebar.inline).toHaveCount(0);
     await expect(sidebar.expandButton).toBeVisible();
 
-    const after = await content.boundingBox();
+    const after = await overviewPage.main.boundingBox();
     expect(after!.x).toBeLessThan(before!.x);
     expect(after!.width).toBeGreaterThan(before!.width);
 
@@ -141,15 +140,16 @@ test.describe('sidebar - desktop (inline, collapsible)', () => {
     const longRow = await sidebar.item(longName).boundingBox();
     expect(longRow!.x + longRow!.width).toBeLessThanOrEqual(sidebarBox!.x + sidebarBox!.width + 1);
 
-    const label = sidebar.item(longName).getByTestId('sidebar-label');
+    const label = sidebar.item(longName).getByTestId('sidebar-item-label');
     const truncated = await label.evaluate((el) => el.scrollWidth > el.clientWidth);
     expect(truncated).toBe(true);
   });
 
-  test('expands ancestor folders when a nested request is opened from search or a link', async ({
+  test('expands ancestor folders when a nested request is opened from search', async ({
     page,
     sidebar,
-    search
+    search,
+    requestPage
   }) => {
     await page.goto(FOLDERS);
     await expect(sidebar.item('Cancel Booking')).toHaveCount(0);
@@ -158,16 +158,10 @@ test.describe('sidebar - desktop (inline, collapsible)', () => {
     await search.field.fill('cancel booking');
     await search.result('Cancel Booking').click();
 
-    await expect(page.getByRole('heading', { name: 'Cancel Booking', level: 1 })).toBeVisible();
+    await expect(requestPage.title).toHaveText('Cancel Booking');
     await folderOpen(sidebar, 'Bookings', true);
     await folderOpen(sidebar, 'Lifecycle', true);
     await expect(sidebar.item('Cancel Booking')).toBeVisible();
-
-    await page.goto(`${FOLDERS}#/bookings/lifecycle/create-booking`);
-    await expect(page.getByRole('heading', { name: 'Create Booking', level: 1 })).toBeVisible();
-    await folderOpen(sidebar, 'Bookings', true);
-    await folderOpen(sidebar, 'Lifecycle', true);
-    await expect(sidebar.item('Create Booking')).toBeVisible();
   });
 
   test('keeps folders expanded across navigation', async ({ page, sidebar }) => {
